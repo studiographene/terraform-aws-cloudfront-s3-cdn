@@ -22,7 +22,6 @@
 
 module "this" {
   source  = "git@github.com:studiographene/terraform-null-label.git"
-  version = "0.25.0" # requires Terraform >= 0.13.0
 
   enabled             = var.enabled
   namespace           = var.namespace
