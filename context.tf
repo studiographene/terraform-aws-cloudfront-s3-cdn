@@ -14,7 +14,7 @@
 
 module "this" {
   source  = "app.terraform.io/studiographene/sg-label/null"
-  version = "1.0.0"
+  version = "1.0.1"
 
   enabled             = var.enabled
   project_name        = var.project_name
