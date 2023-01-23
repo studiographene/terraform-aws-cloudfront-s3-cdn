@@ -64,6 +64,8 @@ variable "context" {
     # by setting `labels_as_tags` to `[]`, so we need
     # a different sentinel to indicate "default"
     labels_as_tags = ["unset"]
+    name           = null
+    namespace      = null
   }
   description = <<-EOT
     Single object for setting entire context at once.
