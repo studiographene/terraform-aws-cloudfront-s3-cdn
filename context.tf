@@ -32,6 +32,7 @@ module "this" {
   label_value_case    = var.label_value_case
   descriptor_formats  = var.descriptor_formats
   labels_as_tags      = var.labels_as_tags
+  name                = var.name
 
   context = var.context
 }
@@ -62,6 +63,7 @@ variable "context" {
     # by setting `labels_as_tags` to `[]`, so we need
     # a different sentinel to indicate "default"
     labels_as_tags = ["unset"]
+    name           = null 
   }
   description = <<-EOT
     Single object for setting entire context at once.
