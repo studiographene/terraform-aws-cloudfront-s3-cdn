@@ -252,3 +252,13 @@ variable "descriptor_formats" {
     Default is `{}` (`descriptors` output will be empty).
     EOT
 }
+  
+variable "name" {
+  type        = string
+  default     = null
+  description = <<-EOT
+    ID element. Usually the component or solution name, e.g. 'app' or 'jenkins'.
+    This is the only ID element not also included as a `tag`.
+    The "name" tag is set to the full `id` string. There is no tag with the value of the `name` input.
+    EOT
+}
