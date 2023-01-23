@@ -14,7 +14,7 @@
 
 module "this" {
   source  = "app.terraform.io/studiographene/sg-label/null"
-  version = "1.0.1"
+  version = "1.0.2"
 
   enabled             = var.enabled
   project_name        = var.project_name
@@ -33,6 +33,7 @@ module "this" {
   descriptor_formats  = var.descriptor_formats
   labels_as_tags      = var.labels_as_tags
   name                = var.name
+  namespace           = var.namespace
 
   context = var.context
 }
@@ -63,7 +64,6 @@ variable "context" {
     # by setting `labels_as_tags` to `[]`, so we need
     # a different sentinel to indicate "default"
     labels_as_tags = ["unset"]
-    name           = null 
   }
   description = <<-EOT
     Single object for setting entire context at once.
@@ -254,7 +254,7 @@ variable "descriptor_formats" {
     Default is `{}` (`descriptors` output will be empty).
     EOT
 }
-  
+
 variable "name" {
   type        = string
   default     = null
@@ -263,4 +263,10 @@ variable "name" {
     This is the only ID element not also included as a `tag`.
     The "name" tag is set to the full `id` string. There is no tag with the value of the `name` input.
     EOT
+}
+
+variable "namespace" {
+  type        = string
+  default     = null
+  description = "ID element. Usually an abbreviation of your organization name, e.g. 'eg' or 'cp', to help ensure generated IDs are globally unique"
 }
