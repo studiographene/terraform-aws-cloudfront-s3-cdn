@@ -549,7 +549,7 @@ variable "s3_access_log_prefix" {
 
 variable "s3_object_ownership" {
   type        = string
-  default     = "ObjectWriter"
+  default     = "BucketOwnerEnforced"
   description = "Specifies the S3 object ownership control on the origin bucket. Valid values are `ObjectWriter`, `BucketOwnerPreferred`, and 'BucketOwnerEnforced'."
 }
 
