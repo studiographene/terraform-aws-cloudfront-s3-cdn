@@ -256,7 +256,6 @@ resource "aws_s3_bucket" "origin" {
   count = local.create_s3_origin_bucket ? 1 : 0
 
   bucket        = module.origin_label.id
-  acl           = "private"
   tags          = module.origin_label.tags
   force_destroy = var.origin_force_destroy
 
@@ -339,18 +338,68 @@ resource "time_sleep" "wait_for_aws_s3_bucket_settings" {
 
   depends_on = [aws_s3_bucket_public_access_block.origin, aws_s3_bucket_policy.default]
 }
-
+    
+data "aws_iam_policy_document" "log_bucket_policy" {
+  count = local.create_cf_log_bucket
+  
+  statement {
+    sid    = "S3LogsPolicy"
+    effect = "Allow"
+    principals = {
+      type = "Service"
+      identifiers = [
+        "logging.s3.amazonaws.com"
+      ]
+    }
+    
+    actions = [
+      "s3:PutObject"
+    ]
+    
+    resources = [
+      "${module.logs[0].s3_bucket_arn}/*",
+    ]
+    
+    condition {
+      test     = "ArnLike"
+      variable = "aws:SourceArn"
+      value    = module.logs[0].s3_bucket_arn
+    }
+  }
+}
+    
 module "logs" {
-  source                   = "cloudposse/s3-log-storage/aws"
-  version                  = "0.26.0"
-  enabled                  = local.create_cf_log_bucket
-  attributes               = var.extra_logs_attributes
-  lifecycle_prefix         = local.cloudfront_access_log_prefix
-  standard_transition_days = var.log_standard_transition_days
-  glacier_transition_days  = var.log_glacier_transition_days
-  expiration_days          = var.log_expiration_days
-  force_destroy            = var.origin_force_destroy
-  versioning_enabled       = var.log_versioning_enabled
+  source  = "git@github.com:studiographene/terraform-aws-s3-bucket-cloudposse.git"
+  enabled = local.create_cf_log_bucket
+
+  attributes          = ["logs"]
+  versioning_enabled  = var.log_versioning_enabled
+  s3_object_ownership = "BucketOwnerEnforced"
+  lifecycle_configuration_rules = [
+    {
+      enabled = true
+      id      = "expiration-${var.log_expiration_days}"
+
+      abort_incomplete_multipart_upload_days = 1
+
+      filter_and = { prefix  = local.cloudfront_access_log_prefix }
+      expiration = { days = var.log_expiration_days }
+      transition = { 
+        days          = var.log_glacier_transition_days
+        storage_class = "GLACIER"
+      }
+      noncurrent_version_expiration = {
+        newer_noncurrent_versions = 3
+        noncurrent_days           = var.log_expiration_days
+      }
+      noncurrent_version_transition = [{
+        newer_noncurrent_versions = 3
+        noncurrent_days           = var.log_glacier_transition_days
+        storage_class             = "GLACIER" # string/enum, one of GLACIER, STANDARD_IA, ONEZONE_IA, INTELLIGENT_TIERING, DEEP_ARCHIVE, GLACIER_IR.
+      }]
+    }
+  ]
+  source_policy_documents = [ data.aws_iam_policy_document.log_bucket_policy[0].json ]
 
   context = module.this.context
 }
