@@ -54,7 +54,7 @@ locals {
 
   lookup_cf_log_bucket = local.cloudfront_access_logging_enabled && !local.cloudfront_access_log_create_bucket
   cf_log_bucket_domain = local.cloudfront_access_logging_enabled ? (
-    local.lookup_cf_log_bucket ? data.aws_s3_bucket.cf_logs[0].bucket_domain_name : module.logs.bucket_domain_name
+    local.lookup_cf_log_bucket ? data.aws_s3_bucket.cf_logs[0].bucket_domain_name : aws_s3_bucket.cf_log[0].bucket
   ) : ""
 
   use_default_acm_certificate = var.acm_certificate_arn == ""
@@ -360,7 +360,7 @@ resource "aws_s3_bucket" "cf_log" {
 resource "aws_s3_bucket_versioning" "cf_log" {
   count = local.create_cf_log_bucket ? 1 : 0
 
-  bucket = aws_s3_bucket.default[0].id
+  bucket = aws_s3_bucket.cf_log[0].id
   versioning_configuration {
     status = var.log_versioning_enabled ? "Enabled" : "Disabled"
   }
@@ -409,9 +409,9 @@ resource "aws_s3_bucket_acl" "cf_log" {
 
 resource "aws_s3_bucket_lifecycle_configuration" "cf_log" {
   count      = local.create_cf_log_bucket ? 1 : 0
-  depends_on = [aws_s3_bucket_versioning.versioning]
+  depends_on = [aws_s3_bucket_versioning.cf_log]
 
-  bucket    = aws_s3_bucket.versioning_bucket.id
+  bucket    = aws_s3_bucket.cf_log[0].id
   depens_on = [aws_s3_bucket_versioning.cf_log]
 
   rule {

@@ -83,7 +83,7 @@ output "log_bucket_id" {
   description = "Log bucket ID"
 }
 output "log_bucket_name" {
-  value       = local.create_cf_log_bucket ? aws_s3_bucket.cf_log[0].name : null
+  value       = local.create_cf_log_bucket ? aws_s3_bucket.cf_log[0].id : null
   description = "Log bucket name"
 }
 
