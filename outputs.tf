@@ -73,9 +73,18 @@ output "s3_bucket_policy" {
   description = "Final computed S3 bucket policy"
 }
 
-output "logs" {
-  value       = module.logs
-  description = "Log bucket resource"
+output "log_bucket_arn" {
+  value       = local.create_cf_log_bucket ? aws_s3_bucket.cf_log[0].arn : null
+  description = "Log bucket ARN"
+}
+
+output "log_bucket_id" {
+  value       = local.create_cf_log_bucket ? aws_s3_bucket.cf_log[0].id : null
+  description = "Log bucket ID"
+}
+output "log_bucket_name" {
+  value       = local.create_cf_log_bucket ? aws_s3_bucket.cf_log[0].name : null
+  description = "Log bucket name"
 }
 
 output "aliases" {

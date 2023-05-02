@@ -67,6 +67,12 @@ variable "origin_force_destroy" {
   description = "Delete all objects from the bucket so that the bucket can be destroyed without error (e.g. `true` or `false`)"
 }
 
+variable "log_bucket_force_destroy" {
+  type        = bool
+  default     = false
+  description = "Delete all objects from the bucket so that the bucket can be destroyed without error (e.g. `true` or `false`)"
+}
+
 variable "compress" {
   type        = bool
   default     = true

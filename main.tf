@@ -338,70 +338,98 @@ resource "time_sleep" "wait_for_aws_s3_bucket_settings" {
 
   depends_on = [aws_s3_bucket_public_access_block.origin, aws_s3_bucket_policy.default]
 }
-    
-data "aws_iam_policy_document" "log_bucket_policy" {
-  count = local.create_cf_log_bucket
-  
-  statement {
-    sid    = "S3LogsPolicy"
-    effect = "Allow"
-    principals = {
-      type = "Service"
-      identifiers = [
-        "logging.s3.amazonaws.com"
-      ]
-    }
-    
-    actions = [
-      "s3:PutObject"
-    ]
-    
-    resources = [
-      "${module.logs[0].s3_bucket_arn}/*",
-    ]
-    
-    condition {
-      test     = "ArnLike"
-      variable = "aws:SourceArn"
-      value    = module.logs[0].s3_bucket_arn
+
+#---
+# Log bucket
+#---
+
+resource "aws_s3_bucket" "cf_log" {
+  count = local.create_cf_log_bucket ? 1 : 0
+
+  bucket        = "${module.this.id}-log"
+  force_destroy = var.log_bucket_force_destroy
+
+  tags = merge(
+    module.this.tags,
+    {
+      "Name" = "${module.this.id}-log"
+    },
+  )
+}
+
+resource "aws_s3_bucket_versioning" "cf_log" {
+  count = local.create_cf_log_bucket && var.log_versioning_enabled ? 1 : 0
+
+  bucket = aws_s3_bucket.default[0].id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "cf_log" {
+  count = local.create_cf_log_bucket ? 1 : 0
+
+  bucket = aws_s3_bucket.cf_log[0].bucket
+  rule {
+    bucket_key_enabled = false
+
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "aws:kms"
     }
   }
 }
-    
-module "logs" {
-  source  = "git@github.com:studiographene/terraform-aws-s3-bucket-cloudposse.git"
-  enabled = local.create_cf_log_bucket
 
-  attributes          = ["logs"]
-  versioning_enabled  = var.log_versioning_enabled
-  s3_object_ownership = "BucketOwnerEnforced"
-  lifecycle_configuration_rules = [
-    {
-      enabled = true
-      id      = "expiration-${var.log_expiration_days}"
+resource "aws_s3_bucket_public_access_block" "cf_log" {
+  count = local.create_cf_log_bucket ? 1 : 0
 
-      abort_incomplete_multipart_upload_days = 1
+  bucket                  = aws_s3_bucket.cf_log[0].id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
 
-      filter_and = { prefix  = local.cloudfront_access_log_prefix }
-      expiration = { days = var.log_expiration_days }
-      transition = { 
-        days          = var.log_glacier_transition_days
-        storage_class = "GLACIER"
-      }
-      noncurrent_version_expiration = {
-        newer_noncurrent_versions = 3
-        noncurrent_days           = var.log_expiration_days
-      }
-      noncurrent_version_transition = [{
-        newer_noncurrent_versions = 3
-        noncurrent_days           = var.log_glacier_transition_days
-        storage_class             = "GLACIER" # string/enum, one of GLACIER, STANDARD_IA, ONEZONE_IA, INTELLIGENT_TIERING, DEEP_ARCHIVE, GLACIER_IR.
-      }]
+resource "aws_s3_bucket_ownership_controls" "cf_log" {
+  count = local.create_cf_log_bucket ? 1 : 0
+
+  bucket = aws_s3_bucket.cf_log[0].id
+
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
+
+resource "aws_s3_bucket_acl" "cf_log" {
+  count      = local.create_cf_log_bucket ? 1 : 0
+  depends_on = [aws_s3_bucket_ownership_controls.cf_log]
+
+  bucket = aws_s3_bucket.cf_log[0].id
+  acl    = "log-delivery-write"
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "cf_log" {
+  count      = local.create_cf_log_bucket ? 1 : 0
+  depends_on = [aws_s3_bucket_versioning.versioning]
+
+  bucket = aws_s3_bucket.versioning_bucket.id
+
+  rule {
+    id = "expiration-${var.log_expiration_days}"
+
+    filter {
+      prefix = local.cloudfront_access_log_prefix
     }
-  ]
-  source_policy_documents = [ data.aws_iam_policy_document.log_bucket_policy[0].json ]
 
-  context = module.this.context
+    status = "Enabled"
+
+    transition {
+      days          = var.log_glacier_transition_days
+      storage_class = "GLACIER"
+    }
+    expiration {
+      days = var.log_expiration_days
+    }
+  }
 }
 
 data "aws_s3_bucket" "origin" {
