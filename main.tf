@@ -358,11 +358,11 @@ resource "aws_s3_bucket" "cf_log" {
 }
 
 resource "aws_s3_bucket_versioning" "cf_log" {
-  count = local.create_cf_log_bucket && var.log_versioning_enabled ? 1 : 0
+  count = local.create_cf_log_bucket ? 1 : 0
 
   bucket = aws_s3_bucket.default[0].id
   versioning_configuration {
-    status = "Enabled"
+    status = var.log_versioning_enabled ? "Enabled" : "Disabled"
   }
 }
 
@@ -411,7 +411,8 @@ resource "aws_s3_bucket_lifecycle_configuration" "cf_log" {
   count      = local.create_cf_log_bucket ? 1 : 0
   depends_on = [aws_s3_bucket_versioning.versioning]
 
-  bucket = aws_s3_bucket.versioning_bucket.id
+  bucket    = aws_s3_bucket.versioning_bucket.id
+  depens_on = [aws_s3_bucket_versioning.cf_log]
 
   rule {
     id = "expiration-${var.log_expiration_days}"
@@ -428,6 +429,22 @@ resource "aws_s3_bucket_lifecycle_configuration" "cf_log" {
     }
     expiration {
       days = var.log_expiration_days
+    }
+
+    dynamic "noncurrent_version_transition" {
+      for_each = var.log_versioning_enabled ? ["true"] : []
+
+      content {
+        noncurrent_days = var.log_glacier_transition_days
+        storage_class   = "GLACIER"
+      }
+    }
+    dynamic "noncurrent_version_expiration" {
+      for_each = var.log_versioning_enabled ? ["true"] : []
+
+      content {
+        noncurrent_days = var.log_expiration_days
+      }
     }
   }
 }
