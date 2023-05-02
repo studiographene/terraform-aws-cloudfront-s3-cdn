@@ -54,7 +54,7 @@ locals {
 
   lookup_cf_log_bucket = local.cloudfront_access_logging_enabled && !local.cloudfront_access_log_create_bucket
   cf_log_bucket_domain = local.cloudfront_access_logging_enabled ? (
-    local.lookup_cf_log_bucket ? data.aws_s3_bucket.cf_logs[0].bucket_domain_name : aws_s3_bucket.cf_log[0].bucket
+    local.lookup_cf_log_bucket ? data.aws_s3_bucket.cf_logs[0].bucket_domain_name : aws_s3_bucket.cf_log[0].bucket_domain_name
   ) : ""
 
   use_default_acm_certificate = var.acm_certificate_arn == ""
