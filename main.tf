@@ -411,8 +411,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "cf_log" {
   count      = local.create_cf_log_bucket ? 1 : 0
   depends_on = [aws_s3_bucket_versioning.cf_log]
 
-  bucket    = aws_s3_bucket.cf_log[0].id
-  depens_on = [aws_s3_bucket_versioning.cf_log]
+  bucket = aws_s3_bucket.cf_log[0].id
 
   rule {
     id = "expiration-${var.log_expiration_days}"
