@@ -583,7 +583,6 @@ variable "extra_logs_attributes" {
     EOT
 }
 
-
 variable "cloudfront_access_log_bucket_name" {
   type        = string # diff hint
   default     = ""     # diff hint
@@ -635,32 +634,6 @@ variable "origin_groups" {
     If `primary_origin_id` is set to `null` or `""`, then the origin id of the origin created by this module will be used in its place.
     This is to allow for the use case of making the origin created by this module the primary origin in an origin group.
   EOT
-}
-
-# Variables below here are DEPRECATED and should not be used anymore
-
-variable "access_log_bucket_name" {
-  type        = string
-  default     = null
-  description = "DEPRECATED. Use `s3_access_log_bucket_name` instead."
-}
-
-variable "logging_enabled" {
-  type        = bool
-  default     = null
-  description = "DEPRECATED. Use `cloudfront_access_logging_enabled` instead."
-}
-
-variable "log_include_cookies" {
-  type        = bool
-  default     = null
-  description = "DEPRECATED. Use `cloudfront_access_log_include_cookies` instead."
-}
-
-variable "log_prefix" {
-  type        = string
-  default     = null
-  description = "DEPRECATED. Use `cloudfront_access_log_prefix` instead."
 }
 
 variable "realtime_log_config_arn" {

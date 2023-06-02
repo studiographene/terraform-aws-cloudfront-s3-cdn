@@ -7,7 +7,7 @@ locals {
   s3_origin_enabled         = local.enabled && !var.website_enabled
   create_s3_origin_bucket   = local.enabled && var.origin_bucket == null
   s3_access_logging_enabled = local.enabled && (var.s3_access_logging_enabled == null ? length(var.s3_access_log_bucket_name) > 0 : var.s3_access_logging_enabled)
-  create_cf_log_bucket      = local.cloudfront_access_logging_enabled && local.cloudfront_access_log_create_bucket
+  create_cf_log_bucket      = local.enabled && var.cloudfront_access_logging_enabled && var.cloudfront_access_log_create_bucket
 
   create_cloudfront_origin_access_identity = local.enabled && length(compact([var.cloudfront_origin_access_identity_iam_arn])) == 0 # "" or null
 
@@ -52,8 +52,8 @@ locals {
 
   override_origin_bucket_policy = local.enabled && var.override_origin_bucket_policy
 
-  lookup_cf_log_bucket = local.cloudfront_access_logging_enabled && !local.cloudfront_access_log_create_bucket
-  cf_log_bucket_domain = local.cloudfront_access_logging_enabled ? (
+  lookup_cf_log_bucket = var.cloudfront_access_logging_enabled && !var.cloudfront_access_log_create_bucket
+  cf_log_bucket_domain = var.cloudfront_access_logging_enabled ? (
     local.lookup_cf_log_bucket ? data.aws_s3_bucket.cf_logs[0].bucket_domain_name : aws_s3_bucket.cf_log[0].bucket_domain_name
   ) : ""
 
@@ -133,7 +133,7 @@ resource "random_password" "referer" {
 data "aws_iam_policy_document" "s3_origin" {
   count = local.s3_origin_enabled ? 1 : 0
 
-  override_json = local.override_policy
+  override_policy_documents = [local.override_policy]
 
   statement {
     sid = "S3GetObjectForCloudFront"
@@ -163,7 +163,7 @@ data "aws_iam_policy_document" "s3_origin" {
 data "aws_iam_policy_document" "s3_website_origin" {
   count = local.website_enabled ? 1 : 0
 
-  override_json = local.override_policy
+  override_policy_documents = [local.override_policy]
 
   statement {
     sid = "S3GetObjectForCloudFront"
@@ -276,9 +276,9 @@ resource "aws_s3_bucket" "origin" {
   }
 
   dynamic "logging" {
-    for_each = local.s3_access_log_bucket_name != "" ? [1] : []
+    for_each = var.s3_access_log_bucket_name != "" ? [1] : []
     content {
-      target_bucket = local.s3_access_log_bucket_name
+      target_bucket = var.s3_access_log_bucket_name
       target_prefix = coalesce(var.s3_access_log_prefix, "logs/${local.origin_id}/")
     }
   }
@@ -417,7 +417,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "cf_log" {
     id = "expiration-${var.log_expiration_days}"
 
     filter {
-      prefix = local.cloudfront_access_log_prefix
+      prefix = var.cloudfront_access_log_prefix
     }
 
     status = "Enabled"
@@ -473,12 +473,12 @@ resource "aws_cloudfront_distribution" "default" {
   http_version        = var.http_version
 
   dynamic "logging_config" {
-    for_each = local.cloudfront_access_logging_enabled ? ["true"] : []
+    for_each = var.cloudfront_access_logging_enabled ? ["true"] : []
 
     content {
-      include_cookies = local.cloudfront_access_log_include_cookies
+      include_cookies = var.cloudfront_access_log_include_cookies
       bucket          = local.cf_log_bucket_domain
-      prefix          = local.cloudfront_access_log_prefix
+      prefix          = var.cloudfront_access_log_prefix
     }
   }
 
