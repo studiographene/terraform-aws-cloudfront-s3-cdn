@@ -109,8 +109,8 @@ data "aws_region" "current" {
 }
 
 module "origin_label" {
-  source  = "cloudposse/label/null"
-  version = "0.25.0"
+  source  = "app.terraform.io/studiographene/sg-label/null"
+  version = "1.0.4"
 
   attributes = var.extra_origin_attributes
 
