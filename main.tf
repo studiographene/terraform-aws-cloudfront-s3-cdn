@@ -466,7 +466,7 @@ resource "aws_cloudfront_distribution" "default" {
 
   enabled             = var.distribution_enabled
   is_ipv6_enabled     = var.ipv6_enabled
-  comment             = coalesce(var.cf_description, ${module.this.id})
+  comment             = coalesce(var.cf_description, module.this.id)
   default_root_object = var.default_root_object
   price_class         = var.price_class
   depends_on          = [aws_s3_bucket.origin]
