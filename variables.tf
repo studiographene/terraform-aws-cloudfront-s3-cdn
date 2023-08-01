@@ -85,10 +85,10 @@ variable "default_root_object" {
   description = "Object that CloudFront return when requests the root URL"
 }
 
-variable "comment" {
+variable "cf_description" {
   type        = string
   default     = "Managed by Terraform"
-  description = "Comment for the origin access identity"
+  description = "CloudFront description"
 }
 
 variable "log_standard_transition_days" {
