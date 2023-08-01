@@ -87,7 +87,7 @@ variable "default_root_object" {
 
 variable "cf_description" {
   type        = string
-  default     = "Managed by Terraform"
+  default     = null
   description = "CloudFront description"
 }
 
