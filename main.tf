@@ -253,7 +253,7 @@ resource "aws_s3_bucket_versioning" "origin" {
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "origin" {
-  count = var.sse_enabled ? 1 : 0
+  count = var.encryption_enabled ? 1 : 0
 
   bucket = local.bucket
   rule {
@@ -296,7 +296,7 @@ resource "aws_s3_bucket_ownership_controls" "origin" {
 }
 
 resource "aws_s3_bucket_cors_configuration" "origin" {
-  count  = distinct(compact(concat(var.cors_allowed_origins, var.aliases, var.external_aliases))) > 0 ? 1 : 0
+  count  = length(distinct(compact(concat(var.cors_allowed_origins, var.aliases, var.external_aliases)))) > 0 ? 1 : 0
   bucket = local.bucket
 
   dynamic "cors_rule" {
@@ -318,7 +318,7 @@ resource "aws_s3_bucket_website_configuration" "origin" {
   bucket = local.bucket
 
   dynamic "index_document" {
-    for_each = var.redirect_all_requests_to == null ? ["true"] : []
+    for_each = var.s3_website_redirect_all_requests_to == null ? ["true"] : []
 
     content {
       suffix = var.s3_website_index_document
@@ -326,7 +326,7 @@ resource "aws_s3_bucket_website_configuration" "origin" {
   }
 
   dynamic "error_document" {
-    for_each = var.redirect_all_requests_to == null && var.s3_website_error_document != null ? ["true"] : []
+    for_each = var.s3_website_redirect_all_requests_to == null && var.s3_website_error_document != null ? ["true"] : []
 
     content {
       key = var.s3_website_error_document
