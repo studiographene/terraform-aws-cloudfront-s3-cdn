@@ -356,27 +356,27 @@ variable "encryption_enabled" {
   description = "When set to 'true' the resource will have aes256 encryption enabled by default"
 }
 
-variable "index_document" {
+variable "s3_website_index_document" {
   type        = string
   default     = "index.html"
   description = "Amazon S3 returns this index document when requests are made to the root domain or any of the subfolders"
 }
 
-variable "redirect_all_requests_to" {
+variable "s3_website_redirect_all_requests_to" {
   type        = string
-  default     = ""
+  default     = null
   description = "A hostname to redirect all website requests for this distribution to. If this is set, it overrides other website settings"
 }
 
-variable "error_document" {
+variable "s3_website_error_document" {
   type        = string
-  default     = ""
+  default     = null
   description = "An absolute path to the document to return in case of a 4XX error"
 }
 
-variable "routing_rules" {
+variable "s3_website_routing_rules" {
   type        = string
-  default     = ""
+  default     = null
   description = "A json array containing routing rules describing redirect behavior and when redirects are applied"
 }
 

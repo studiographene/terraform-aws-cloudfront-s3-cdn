@@ -60,21 +60,6 @@ locals {
   use_default_acm_certificate = var.acm_certificate_arn == ""
   minimum_protocol_version    = var.minimum_protocol_version == "" ? (local.use_default_acm_certificate ? "TLSv1" : "TLSv1.2_2019") : var.minimum_protocol_version
 
-  website_config = {
-    redirect_all = [
-      {
-        redirect_all_requests_to = var.redirect_all_requests_to
-      }
-    ]
-    default = [
-      {
-        index_document = var.index_document
-        error_document = var.error_document
-        routing_rules  = var.routing_rules
-      }
-    ]
-  }
-
   # Based on https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/origin-shield.html#choose-origin-shield-region
   # If a region is not specified, we assume it supports Origin Shield.
   origin_shield_region_fallback_map = {
@@ -258,51 +243,32 @@ resource "aws_s3_bucket" "origin" {
   bucket        = module.origin_label.id
   tags          = module.origin_label.tags
   force_destroy = var.origin_force_destroy
+}
 
-  dynamic "server_side_encryption_configuration" {
-    for_each = var.encryption_enabled ? ["true"] : []
+resource "aws_s3_bucket_versioning" "origin" {
+  bucket = local.bucket
+  versioning_configuration {
+    status = var.versioning_enabled ? "Enabled" : "Disabled"
+  }
+}
 
-    content {
-      rule {
-        apply_server_side_encryption_by_default {
-          sse_algorithm = "AES256"
-        }
-      }
+resource "aws_s3_bucket_server_side_encryption_configuration" "origin" {
+  count = var.sse_enabled ? 1 : 0
+
+  bucket = local.bucket
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
     }
   }
+}
 
-  versioning {
-    enabled = var.versioning_enabled
-  }
+resource "aws_s3_bucket_logging" "origin" {
+  count = local.s3_access_logging_enabled ? 1 : 0
 
-  dynamic "logging" {
-    for_each = var.s3_access_log_bucket_name != "" ? [1] : []
-    content {
-      target_bucket = var.s3_access_log_bucket_name
-      target_prefix = coalesce(var.s3_access_log_prefix, "logs/${local.origin_id}/")
-    }
-  }
-
-  dynamic "website" {
-    for_each = var.website_enabled ? local.website_config[var.redirect_all_requests_to == "" ? "default" : "redirect_all"] : []
-    content {
-      error_document           = lookup(website.value, "error_document", null)
-      index_document           = lookup(website.value, "index_document", null)
-      redirect_all_requests_to = lookup(website.value, "redirect_all_requests_to", null)
-      routing_rules            = lookup(website.value, "routing_rules", null)
-    }
-  }
-
-  dynamic "cors_rule" {
-    for_each = distinct(compact(concat(var.cors_allowed_origins, var.aliases, var.external_aliases)))
-    content {
-      allowed_headers = var.cors_allowed_headers
-      allowed_methods = var.cors_allowed_methods
-      allowed_origins = [cors_rule.value]
-      expose_headers  = var.cors_expose_headers
-      max_age_seconds = var.cors_max_age_seconds
-    }
-  }
+  bucket        = local.bucket
+  target_bucket = var.s3_access_log_bucket_name
+  target_prefix = coalesce(var.s3_access_log_prefix, "logs/${local.origin_id}/")
 }
 
 resource "aws_s3_bucket_public_access_block" "origin" {
@@ -327,6 +293,55 @@ resource "aws_s3_bucket_ownership_controls" "origin" {
   }
 
   depends_on = [time_sleep.wait_for_aws_s3_bucket_settings]
+}
+
+resource "aws_s3_bucket_cors_configuration" "origin" {
+  count  = distinct(compact(concat(var.cors_allowed_origins, var.aliases, var.external_aliases))) > 0 ? 1 : 0
+  bucket = local.bucket
+
+  dynamic "cors_rule" {
+    for_each = distinct(compact(concat(var.cors_allowed_origins, var.aliases, var.external_aliases)))
+
+    content {
+      allowed_headers = var.cors_allowed_headers
+      allowed_methods = var.cors_allowed_methods
+      allowed_origins = [cors_rule.value]
+      expose_headers  = var.cors_expose_headers
+      max_age_seconds = var.cors_max_age_seconds
+    }
+  }
+}
+
+resource "aws_s3_bucket_website_configuration" "origin" {
+  count = var.website_enabled ? 1 : 0
+
+  bucket = local.bucket
+
+  dynamic "index_document" {
+    for_each = var.redirect_all_requests_to == null ? ["true"] : []
+
+    content {
+      suffix = var.s3_website_index_document
+    }
+  }
+
+  dynamic "error_document" {
+    for_each = var.redirect_all_requests_to == null && var.s3_website_error_document != null ? ["true"] : []
+
+    content {
+      key = var.s3_website_error_document
+    }
+  }
+
+  dynamic "redirect_all_requests_to" {
+    for_each = var.s3_website_redirect_all_requests_to != null ? ["true"] : []
+
+    content {
+      host_name = var.s3_website_redirect_all_requests_to
+    }
+  }
+
+  routing_rules = var.s3_website_routing_rules
 }
 
 # Workaround for S3 eventual consistency for settings relating to objects
