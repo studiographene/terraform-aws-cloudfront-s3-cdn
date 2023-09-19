@@ -6,14 +6,6 @@ Terraform module to provision an AWS CloudFront CDN with an S3 origin.
 
 ---
 
-This project is part of our comprehensive ["SweetOps"](https://cpco.io/sweetops) approach towards DevOps.
-[<img align="right" title="Share via Email" src="https://docs.cloudposse.com/images/ionicons/ios-email-outline-2.0.1-16x16-999999.svg"/>][share_email]
-[<img align="right" title="Share on Google+" src="https://docs.cloudposse.com/images/ionicons/social-googleplus-outline-2.0.1-16x16-999999.svg" />][share_googleplus]
-[<img align="right" title="Share on Facebook" src="https://docs.cloudposse.com/images/ionicons/social-facebook-outline-2.0.1-16x16-999999.svg" />][share_facebook]
-[<img align="right" title="Share on Reddit" src="https://docs.cloudposse.com/images/ionicons/social-reddit-outline-2.0.1-16x16-999999.svg" />][share_reddit]
-[<img align="right" title="Share on LinkedIn" src="https://docs.cloudposse.com/images/ionicons/social-linkedin-outline-2.0.1-16x16-999999.svg" />][share_linkedin]
-[<img align="right" title="Share on Twitter" src="https://docs.cloudposse.com/images/ionicons/social-twitter-outline-2.0.1-16x16-999999.svg" />][share_twitter]
-
 [![Terraform Open Source Modules](https://docs.cloudposse.com/images/terraform-open-source-modules.svg)][terraform_modules]
 
 It's 100% Open Source and licensed under the [APACHE2](LICENSE).
@@ -401,12 +393,11 @@ Available targets:
 
 ## Modules
 
-| Name                                                                    | Source                        | Version |
-| ----------------------------------------------------------------------- | ----------------------------- | ------- |
-| <a name="module_dns"></a> [dns](#module_dns)                            | cloudposse/route53-alias/aws  | 0.13.0  |
-| <a name="module_logs"></a> [logs](#module_logs)                         | cloudposse/s3-log-storage/aws | 0.26.0  |
-| <a name="module_origin_label"></a> [origin_label](#module_origin_label) | cloudposse/label/null         | 0.25.0  |
-| <a name="module_this"></a> [this](#module_this)                         | cloudposse/label/null         | 0.25.0  |
+| Name                                                                    | Source                                        | Version |
+| ----------------------------------------------------------------------- | --------------------------------------------- | ------- |
+| <a name="module_dns"></a> [dns](#module_dns)                            | cloudposse/route53-alias/aws                  | 0.13.0  |
+| <a name="module_origin_label"></a> [origin_label](#module_origin_label) | app.terraform.io/studiographene/sg-label/null | 1.0.4   |
+| <a name="module_this"></a> [this](#module_this)                         | app.terraform.io/studiographene/sg-label/null | 1.0.4   |
 
 ## Resources
 
