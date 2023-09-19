@@ -263,6 +263,11 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "origin" {
   }
 }
 
+resource "aws_s3_bucket_accelerate_configuration" "origin" {
+  bucket = local.bucket
+  status = var.origin_s3_bucket_accelerate_enabled ? "Enabled" : "Disabled"
+}
+
 resource "aws_s3_bucket_logging" "origin" {
   count = local.s3_access_logging_enabled ? 1 : 0
 
