@@ -1,6 +1,6 @@
 # Purpose
 
-Module Courtesy: _cloudposse_
+Module Courtesy: **cloudposse**
 
 Terraform module to provision an AWS CloudFront CDN with an S3 origin.
 
