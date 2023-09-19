@@ -344,8 +344,7 @@ provider "aws" {
 }
 
 module "lambda_at_edge" {
-  source = "cloudposse/cloudfront-s3-cdn/aws//modules/lambda@edge"
-  # Cloud Posse recommends pinning every module to a specific version
+  source = "app.terraform.io/studiographene/cloudfront-s3-cdn/aws//modules/lambda@edge"
   # version = "x.x.x"
 
   functions = {
@@ -391,8 +390,7 @@ module "lambda_at_edge" {
 
 
 module "cdn" {
-  source = "cloudposse/cloudfront-s3-cdn/aws"
-  # Cloud Posse recommends pinning every module to a specific version
+  source = "app.terraform.io/studiographene/cloudfront-s3-cdn/aws"
   # version = "x.x.x"
 
   ...
