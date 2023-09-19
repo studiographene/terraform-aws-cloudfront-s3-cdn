@@ -85,8 +85,7 @@ The following will create a new s3 bucket `eg-prod-app` for a cloudfront cdn, an
 
 ```hcl
 module "cdn" {
-  source = "cloudposse/cloudfront-s3-cdn/aws"
-  # Cloud Posse recommends pinning every module to a specific version
+  source = "app.terraform.io/studiographene/cloudfront-s3-cdn/aws"
   # version = "x.x.x"
 
   namespace         = "eg"
@@ -107,8 +106,7 @@ The following will reuse an existing s3 bucket `eg-prod-app` for a cloudfront cd
 
 ```hcl
 module "cdn" {
-  source = "cloudposse/cloudfront-s3-cdn/aws"
-  # Cloud Posse recommends pinning every module to a specific version
+  source = "app.terraform.io/studiographene/cloudfront-s3-cdn/aws"
   # version = "x.x.x"
 
   origin_bucket     = "eg-prod-app"
@@ -123,16 +121,14 @@ S3 bucket as a failover origin.
 
 ```hcl
 module "s3_bucket" {
-  source  = "cloudposse/s3-bucket/aws"
-  # Cloud Posse recommends pinning every module to a specific version
+  source  = "app.terraform.io/studiographene/s3-bucket/aws"
   # version = "x.x.x"
 
   attributes = ["failover-assets"]
 }
 
 module "cdn" {
-  source = "cloudposse/cloudfront-s3-cdn/aws"
-  # Cloud Posse recommends pinning every module to a specific version
+  source = "app.terraform.io/studiographene/cloudfront-s3-cdn/aws"
   # version = "x.x.x"
 
   aliases           = ["assets.cloudposse.com"]
@@ -275,12 +271,11 @@ provider "aws" {
 
 # create acm and explicitly set it to us-east-1 provider
 module "acm_request_certificate" {
-  source = "cloudposse/acm-request-certificate/aws"
+  source = "app.terraform.io/studiographene/acm-request-certificate/aws"
   providers = {
     aws = aws.us-east-1
   }
 
-  # Cloud Posse recommends pinning every module to a specific version
   # version = "x.x.x"
   domain_name                       = "example.com"
   subject_alternative_names         = ["a.example.com", "b.example.com", "*.c.example.com"]
@@ -289,8 +284,7 @@ module "acm_request_certificate" {
 }
 
 module "cdn" {
-  source = "cloudposse/cloudfront-s3-cdn/aws"
-  # Cloud Posse recommends pinning every module to a specific version
+  source = "app.terraform.io/studiographene/cloudfront-s3-cdn/aws"
   # version     = "x.x.x"
   namespace         = "eg"
   stage             = "prod"
