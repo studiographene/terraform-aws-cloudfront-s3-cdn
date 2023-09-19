@@ -22,8 +22,8 @@ resource "time_sleep" "lambda_at_edge_destruction_delay" {
 module "function_label" {
   for_each = local.functions
 
-  source  = "cloudposse/label/null"
-  version = "0.25.0"
+  source  = "app.terraform.io/studiographene/sg-label/null"
+  version = "1.0.4"
 
   attributes = [each.key]
 

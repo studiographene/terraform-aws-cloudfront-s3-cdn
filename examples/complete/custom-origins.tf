@@ -35,7 +35,7 @@ locals {
 
 # additional labels are required because they will be used for the 'hostname' variables for each of the additional website origins.
 module "additional_custom_origin_label" {
-  source  = "cloudposse/label/null"
+  source  = "app.terraform.io/studiographene/sg-label/null"
   version = "0.24.1"
   enabled = local.additional_custom_origins_enabled
 
@@ -56,7 +56,7 @@ module "additional_custom_origin" {
 }
 
 module "additional_custom_failover_origin_label" {
-  source  = "cloudposse/label/null"
+  source  = "app.terraform.io/studiographene/sg-label/null"
   version = "0.24.1"
   enabled = local.additional_custom_origins_enabled
 
