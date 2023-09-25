@@ -525,10 +525,26 @@ variable "origin_ssl_protocols" {
   description = "The SSL/TLS protocols that you want CloudFront to use when communicating with your origin over HTTPS."
 }
 
-variable "block_origin_public_access_enabled" {
+variable "origin_block_public_policy" {
+  description = "Whether S3 should block public bucket policies for this bucket. Default = true"
+  default     = true
+}
+
+variable "origin_restrict_public_buckets" {
+  description = "Whether S3 should restrict public bucket policies for this bucket. Default = true"
+  default     = true
+}
+
+variable "origin_block_public_acls" {
+  description = "Whether S3 should block public ACLs for this bucket. Default = true"
   type        = bool
-  default     = false
-  description = "When set to 'true' the s3 origin bucket will have public access block enabled"
+  default     = true
+}
+
+variable "origin_ignore_public_acls" {
+  description = "Whether S3 should ignore public ACLs for this bucket. Default = true"
+  type        = bool
+  default     = true
 }
 
 variable "s3_access_logging_enabled" {
