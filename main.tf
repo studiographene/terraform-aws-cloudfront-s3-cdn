@@ -264,8 +264,10 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "origin" {
 }
 
 resource "aws_s3_bucket_accelerate_configuration" "origin" {
+  count = var.origin_s3_bucket_accelerate_enabled ? 1 : 0
+
   bucket = local.bucket
-  status = var.origin_s3_bucket_accelerate_enabled ? "Enabled" : "Suspended"
+  status = "Enabled"
 }
 
 resource "aws_s3_bucket_logging" "origin" {
