@@ -11,7 +11,7 @@ Variable `default_origin_bucket_custom_name`: In exceptional cases, A custom nam
 
 #### info:
 
-This is distict to variable `origin_bucket` which allows to use the bucket created outiside this module instead of creating a bucket in this module.
+This is distinct to variable `origin_bucket` which allows to use the bucket created outiside this module instead of creating a bucket in this module.
 
 New variable:
 
