@@ -4,7 +4,7 @@
 
 > Fix
 
-Variable `ordered_cache` inputs requirement fixed, earlier all the args were requried while originally some of them are optional. Now those that are optional have been set optional.
+Variable `ordered_cache` inputs requirement fixed, earlier all the args were required while originally some of them are optional. Now those that are optional have been set optional.
 
 > Enhance
 
