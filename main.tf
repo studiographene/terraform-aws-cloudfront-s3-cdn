@@ -58,7 +58,7 @@ locals {
   ) : ""
 
   use_default_acm_certificate = var.acm_certificate_arn == ""
-  minimum_protocol_version    = var.minimum_protocol_version == "" ? (local.use_default_acm_certificate ? "TLSv1" : "TLSv1.2_2019") : var.minimum_protocol_version
+  minimum_protocol_version    = var.minimum_protocol_version == "" ? (local.use_default_acm_certificate ? "TLSv1" : "TLSv1.2_2021") : var.minimum_protocol_version
 
   # Based on https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/origin-shield.html#choose-origin-shield-region
   # If a region is not specified, we assume it supports Origin Shield.
@@ -681,11 +681,11 @@ resource "aws_cloudfront_distribution" "default" {
         # If a cache policy or origin request policy is specified, we cannot include a `forwarded_values` block at all in the API request
         for_each = (ordered_cache_behavior.value.cache_policy_id != null || ordered_cache_behavior.value.origin_request_policy_id != null) ? [] : [true]
         content {
-          query_string = ordered_cache_behavior.value.forward_query_string
-          headers      = ordered_cache_behavior.value.forward_header_values
+          query_string = coalesce(ordered_cache_behavior.value.forward_query_string, false)
+          headers      = coalesce(ordered_cache_behavior.value.forward_header_values, ["Access-Control-Request-Headers", "Access-Control-Request-Method", "Origin"])
 
           cookies {
-            forward           = ordered_cache_behavior.value.forward_cookies
+            forward           = coalesce(ordered_cache_behavior.value.forward_cookies, "none")
             whitelisted_names = ordered_cache_behavior.value.forward_cookies_whitelisted_names
           }
         }
@@ -698,7 +698,7 @@ resource "aws_cloudfront_distribution" "default" {
       response_headers_policy_id = ordered_cache_behavior.value.response_headers_policy_id
 
       dynamic "lambda_function_association" {
-        for_each = try(ordered_cache_behavior.value.lambda_function_association, [])
+        for_each = coalesce(ordered_cache_behavior.value.lambda_function_association, [])
         content {
           event_type   = lambda_function_association.value.event_type
           include_body = lookup(lambda_function_association.value, "include_body", null)
@@ -707,7 +707,7 @@ resource "aws_cloudfront_distribution" "default" {
       }
 
       dynamic "function_association" {
-        for_each = try(ordered_cache_behavior.value.function_association, [])
+        for_each = coalesce(ordered_cache_behavior.value.function_association, [])
         content {
           event_type   = function_association.value.event_type
           function_arn = function_association.value.function_arn

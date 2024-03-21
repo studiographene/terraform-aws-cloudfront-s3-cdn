@@ -1,3 +1,19 @@
+# v1.5.0
+
+### What:
+
+> Fix
+
+Variable `ordered_cache` inputs requirement fixed, earlier all the args were requried while originally some of them are optional. Now those that are optional have been set optional.
+
+> Enhance
+
+TLS version updated to `TLSv1.2_2021`
+
+#### Why:
+
+#### info:
+
 # v1.4.0
 
 ### What:
