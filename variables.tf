@@ -199,6 +199,12 @@ variable "viewer_protocol_policy" {
   default     = "redirect-to-https"
 }
 
+variable "default_target_origin_id" {
+  description = "USED ONLY UNDER EXCEPTIONAL CASES where `default_cache_behavior` origin need be a bucket that is not the origin created in this module. Value you set to `default_target_origin_id` must be one of the `origin_id` defined in `s3_origins`."
+  type        = string
+  default     = null
+}
+
 variable "allowed_methods" {
   type        = list(string)
   default     = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
