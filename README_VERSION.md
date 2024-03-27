@@ -2,7 +2,7 @@
 
 ### What:
 
-> Fix
+> Enhance
 
 (An exceptional usage) Optional to define a custom Origin name to the default origin.
 
