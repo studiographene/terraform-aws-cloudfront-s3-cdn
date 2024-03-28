@@ -10,9 +10,9 @@ If you already have CF created with version older than `v2.0.0`, to continue usi
 
 To switch from exsting OAI setup to OAC, due to race condition which causes aws_cloudfront_origin_access_control is in use by CloudFront error, below steps need to be performed.
 
-1. Terraform apply --target module.<module_block_name>.aws_cloudfront_origin_access_control.default
+1. Terraform apply
 2. Manually update the Origins OAI to OAC from CloudFront console.
-3. Terraform apply again
+3. Terraform apply once again
 
 #### Why:
 

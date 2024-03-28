@@ -111,9 +111,9 @@ resource "aws_cloudfront_origin_access_identity" "default" {
 }
 
 # incase of moving from `aws_cloudfront_origin_access_identity` to `aws_cloudfront_origin_access_control`
-# 1. Terraform apply --target to resource "aws_cloudfront_origin_access_control" "default"
+# 1. Terraform apply
 # 2. Manually update the OAI to OAC from CloudFront console
-# 3. Terraform apply again
+# 3. Terraform apply once again
 # because Terraform will try to destroy the  `aws_cloudfront_origin_access_identity` before it is replaced by `aws_cloudfront_origin_access_control`
 # which causes aws_cloudfront_origin_access_control is in use by CloudFront error
 
