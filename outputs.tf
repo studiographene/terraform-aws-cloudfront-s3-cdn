@@ -29,8 +29,8 @@ output "cf_hosted_zone_id" {
 }
 
 output "cf_identity_iam_arn" {
-  value       = try(aws_cloudfront_origin_access_identity.default[0].iam_arn, "")
-  description = "CloudFront Origin Access Identity IAM ARN"
+  value       = try(aws_cloudfront_origin_access_identity.default[0].iam_arn, "arn:aws:cloudfront::${local.account_id}:distribution/${aws_cloudfront_origin_access_control.default[0].id}", "")
+  description = "CloudFront Origin Access Identity/Control IAM ARN"
 }
 
 output "cf_origin_groups" {

@@ -43,7 +43,7 @@ variable "additional_bucket_policy" {
   type        = string
   default     = "{}"
   description = <<-EOT
-    Additional policies for the bucket. If included in the policies, the variables `$${bucket_name}`, `$${origin_path}` and `$${cloudfront_origin_access_identity_iam_arn}` will be substituted.
+    Additional policies for the bucket. If included in the policies, the variables `$${bucket_name}`, `$${origin_path}` and `$${cloudfront_origin_access_identity_iam_arn}`/`$${cloudfront_arn}` will be substituted.
     It is also possible to override the default policy statements by providing statements with `S3GetObjectForCloudFront` and `S3ListBucketForCloudFront` sid.
     EOT
 }
@@ -468,18 +468,16 @@ variable "custom_origins" {
 
 variable "s3_origins" {
   type = list(object({
-    domain_name = string
-    origin_id   = string
-    origin_path = string
-    s3_origin_config = object({
-      origin_access_identity = string
-    })
+    domain_name              = string
+    origin_id                = string
+    origin_path              = string
+    origin_access_control_id = optional(string)
   }))
   default     = []
   description = <<-EOT
     A list of S3 [origins](https://www.terraform.io/docs/providers/aws/r/cloudfront_distribution.html#origin-arguments) (in addition to the one created by this module) for this distribution.
     S3 buckets configured as websites are `custom_origins`, not `s3_origins`.
-    Specifying `s3_origin_config.origin_access_identity` as `null` or `""` will have it translated to the `origin_access_identity` used by the origin created by the module.
+    If `origin_access_control_id` is not specified it translated to the OriginAccessControl created in this module for the default origin.
     EOT
 }
 
@@ -513,16 +511,18 @@ variable "deployment_actions" {
   description = "List of actions to permit `deployment_principal_arns` to perform on bucket and bucket prefixes (see `deployment_principal_arns`)"
 }
 
-variable "cloudfront_origin_access_identity_iam_arn" {
+variable "cloudfront_origin_access_control_id" {
+  description = <<EOF
+    Existing cloudfront Origin Access Control ID that is supplied in the s3 bucket policy
+  EOF
   type        = string
-  default     = ""
-  description = "Existing cloudfront origin access identity iam arn that is supplied in the s3 bucket policy"
+  default     = null
 }
 
-variable "cloudfront_origin_access_identity_path" {
+variable "cloudfront_origin_access_control_signing_behavior" {
+  description = "CloudFront OAC signing behavior. Default = always"
   type        = string
-  default     = ""
-  description = "Existing cloudfront origin access identity path used in the cloudfront distribution's s3_origin_config content"
+  default     = "always"
 }
 
 variable "custom_origin_headers" {

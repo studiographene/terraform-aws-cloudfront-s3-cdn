@@ -1,3 +1,36 @@
+# v2.0.0
+
+### What:
+
+> Major Enhancement
+
+By default CloudFront Origin Access Control (OAC) will be used instead of Origin Access Identity (OAI)
+
+If you already have CF created with version older than `v2.0.0`, to continue using OAI set `continue_using_legacy_cloudfront_origin_access_identity = true`.
+
+To switch from exsting OAI setup to OAC, due to race condition which causes aws_cloudfront_origin_access_control is in use by CloudFront error, below steps need to be performed.
+
+1. Terraform apply --target module.<module_block_name>.aws_cloudfront_origin_access_control.default
+2. Manually update the Origins OAI to OAC from CloudFront console.
+3. Terraform apply again
+
+#### Why:
+
+OAI is deprecated, and OAC is recommended by AWS.
+
+#### info:
+
+```
+variable "continue_using_legacy_cloudfront_origin_access_identity" {
+  description = <<EOF
+    Whether to continue using Legacy CloudFront Origin Access Identity.
+    For backwards compatibility with resource `cloudfront_origin_access_identity`, set `continue_using_legacy_cloudfront_origin_access_identity = false` to continue using CloudFront Origin Access Control.
+  EOF
+  type        = bool
+  default     = false
+}
+```
+
 # v1.5.1
 
 ### What:
