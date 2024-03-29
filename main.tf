@@ -656,28 +656,11 @@ resource "aws_cloudfront_distribution" "default" {
     trusted_signers            = var.trusted_signers
     trusted_key_groups         = var.trusted_key_groups
     response_headers_policy_id = var.response_headers_policy_id
-
-    dynamic "forwarded_values" {
-      # If a cache policy or origin request policy is specified,
-      # we cannot include a `forwarded_values` block at all in the API request.
-      for_each = (var.cache_policy_id != null || var.origin_request_policy_id != null) ? [] : [true]
-      content {
-        query_string            = var.forward_query_string
-        query_string_cache_keys = var.query_string_cache_keys
-        headers                 = var.forward_header_values
-
-        cookies {
-          forward = var.forward_cookies
-        }
-      }
-    }
-
-    viewer_protocol_policy = var.viewer_protocol_policy
-    default_ttl            = (var.cache_policy_id != null || var.origin_request_policy_id != null) ? 0 : var.default_ttl
-    min_ttl                = (var.cache_policy_id != null || var.origin_request_policy_id != null) ? 0 : var.min_ttl
-    max_ttl                = (var.cache_policy_id != null || var.origin_request_policy_id != null) ? 0 : var.max_ttl
-
-    realtime_log_config_arn = var.realtime_log_config_arn
+    viewer_protocol_policy     = var.viewer_protocol_policy
+    default_ttl                = 0
+    min_ttl                    = 0
+    max_ttl                    = 0
+    realtime_log_config_arn    = var.realtime_log_config_arn
 
     dynamic "lambda_function_association" {
       for_each = var.lambda_function_association
@@ -710,28 +693,14 @@ resource "aws_cloudfront_distribution" "default" {
       trusted_signers    = ordered_cache_behavior.value.trusted_signers
       trusted_key_groups = ordered_cache_behavior.value.trusted_key_groups
 
-      cache_policy_id          = ordered_cache_behavior.value.cache_policy_id
-      origin_request_policy_id = ordered_cache_behavior.value.origin_request_policy_id
-
-      dynamic "forwarded_values" {
-        # If a cache policy or origin request policy is specified, we cannot include a `forwarded_values` block at all in the API request
-        for_each = (ordered_cache_behavior.value.cache_policy_id != null || ordered_cache_behavior.value.origin_request_policy_id != null) ? [] : [true]
-        content {
-          query_string = coalesce(ordered_cache_behavior.value.forward_query_string, false)
-          headers      = coalesce(ordered_cache_behavior.value.forward_header_values, ["Access-Control-Request-Headers", "Access-Control-Request-Method", "Origin"])
-
-          cookies {
-            forward           = coalesce(ordered_cache_behavior.value.forward_cookies, "none")
-            whitelisted_names = ordered_cache_behavior.value.forward_cookies_whitelisted_names
-          }
-        }
-      }
-
-      viewer_protocol_policy     = ordered_cache_behavior.value.viewer_protocol_policy
-      default_ttl                = (ordered_cache_behavior.value.cache_policy_id != null || ordered_cache_behavior.value.origin_request_policy_id != null) ? 0 : ordered_cache_behavior.value.default_ttl
-      min_ttl                    = (ordered_cache_behavior.value.cache_policy_id != null || ordered_cache_behavior.value.origin_request_policy_id != null) ? 0 : ordered_cache_behavior.value.min_ttl
-      max_ttl                    = (ordered_cache_behavior.value.cache_policy_id != null || ordered_cache_behavior.value.origin_request_policy_id != null) ? 0 : ordered_cache_behavior.value.max_ttl
+      cache_policy_id            = coalesce(ordered_cache_behavior.value.cache_policy_id, "658327ea-f89d-4fab-a63d-7e88639e58f6")          # AWS Managed-CachingOptimized policy
+      origin_request_policy_id   = coalesce(ordered_cache_behavior.value.origin_request_policy_id, "88a5eaf4-2fd4-4709-b370-b4c650ea3fcf") # AWS Managed-CORS-S3Origin policy
       response_headers_policy_id = ordered_cache_behavior.value.response_headers_policy_id
+
+      viewer_protocol_policy = ordered_cache_behavior.value.viewer_protocol_policy
+      default_ttl            = 0
+      min_ttl                = 0
+      max_ttl                = 0
 
       dynamic "lambda_function_association" {
         for_each = coalesce(ordered_cache_behavior.value.lambda_function_association, [])

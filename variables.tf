@@ -133,18 +133,6 @@ variable "log_versioning_enabled" {
     EOT
 }
 
-variable "forward_query_string" {
-  type        = bool
-  default     = false
-  description = "Forward query strings to the origin that is associated with this cache behavior (incompatible with `cache_policy_id`)"
-}
-
-variable "query_string_cache_keys" {
-  type        = list(string)
-  description = "When `forward_query_string` is enabled, only the query string keys listed in this argument are cached (incompatible with `cache_policy_id`)"
-  default     = []
-}
-
 variable "cors_allowed_headers" {
   type        = list(string)
   default     = ["*"]
@@ -175,28 +163,10 @@ variable "cors_max_age_seconds" {
   description = "Time in seconds that browser can cache the response for S3 bucket"
 }
 
-variable "forward_cookies" {
-  type        = string
-  default     = "none"
-  description = "Specifies whether you want CloudFront to forward all or no cookies to the origin. Can be 'all' or 'none'"
-}
-
-variable "forward_header_values" {
-  type        = list(string)
-  description = "A list of whitelisted header values to forward to the origin (incompatible with `cache_policy_id`)"
-  default     = ["Access-Control-Request-Headers", "Access-Control-Request-Method", "Origin"]
-}
-
 variable "price_class" {
   type        = string
   default     = "PriceClass_100"
   description = "Price class for this distribution: `PriceClass_All`, `PriceClass_200`, `PriceClass_100`"
-}
-
-variable "response_headers_policy_id" {
-  type        = string
-  description = "The identifier for a response headers policy"
-  default     = ""
 }
 
 variable "viewer_protocol_policy" {
@@ -224,21 +194,28 @@ variable "cached_methods" {
 }
 
 variable "cache_policy_id" {
-  type        = string
-  default     = null
   description = <<-EOT
     The unique identifier of the existing cache policy to attach to the default cache behavior.
-    If not provided, this module will add a default cache policy using other provided inputs.
+    Default = "658327ea-f89d-4fab-a63d-7e88639e58f6" # AWS Managed-CachingOptimized policy
     EOT
+  type        = string
+  default     = "658327ea-f89d-4fab-a63d-7e88639e58f6" # AWS Managed-CachingOptimized policy
 }
 
 variable "origin_request_policy_id" {
-  type        = string
-  default     = null
   description = <<-EOT
     The unique identifier of the origin request policy that is attached to the behavior.
     Should be used in conjunction with `cache_policy_id`.
+    Default     = "88a5eaf4-2fd4-4709-b370-b4c650ea3fcf" # AWS Managed-CORS-S3Origin policy
     EOT
+  type        = string
+  default     = "88a5eaf4-2fd4-4709-b370-b4c650ea3fcf" # AWS Managed-CORS-S3Origin policy
+}
+
+variable "response_headers_policy_id" {
+  description = "The identifier for a response headers policy"
+  type        = string
+  default     = ""
 }
 
 variable "default_ttl" {
@@ -403,25 +380,16 @@ variable "ordered_cache" {
     target_origin_id = string
     path_pattern     = string
 
-    allowed_methods    = list(string)
-    cached_methods     = list(string)
-    compress           = bool
-    trusted_signers    = optional(list(string))
-    trusted_key_groups = optional(list(string))
+    allowed_methods        = list(string)
+    cached_methods         = list(string)
+    compress               = bool
+    trusted_signers        = optional(list(string))
+    trusted_key_groups     = optional(list(string))
+    viewer_protocol_policy = string
 
     cache_policy_id            = optional(string)
     origin_request_policy_id   = optional(string)
     response_headers_policy_id = optional(string)
-
-    viewer_protocol_policy = string
-    min_ttl                = optional(number)
-    default_ttl            = optional(number)
-    max_ttl                = optional(number)
-
-    forward_query_string              = optional(bool)
-    forward_header_values             = optional(list(string))
-    forward_cookies                   = optional(string)
-    forward_cookies_whitelisted_names = optional(list(string))
 
     lambda_function_association = optional(list(object({
       event_type   = string

@@ -2,7 +2,7 @@
 
 ### What:
 
-> Major Enhancement
+> Major Enhancement (breaking changes)
 
 By default CloudFront Origin Access Control (OAC) will be used instead of Origin Access Identity (OAI)
 
@@ -14,11 +14,81 @@ To switch from exsting OAI setup to OAC, due to race condition which causes aws_
 2. Manually update the Origins OAI to OAC from CloudFront console.
 3. Terraform apply once again
 
+> Deprecation (breaking changes)
+
+In both default, and ordered cache behavior, variables `forward_query_string`, `query_string_cache_keys`, `forward_header_values`, `forward_cookies` are depricated, and are replaced with policies containing equalent values:
+
+- `origin_request_policy_id` = "88a5eaf4-2fd4-4709-b370-b4c650ea3fcf" # AWS Managed-CORS-S3Origin policy
+- `cache_policy_id` = "658327ea-f89d-4fab-a63d-7e88639e58f6" # AWS Managed-CachingOptimized policy
+
+If you have been setting custom values for any of `forward_query_string`, `query_string_cache_keys`, `forward_header_values`, `forward_cookies`, you will need to create equalent Origin Request Policy, Cache policy and set them to `origin_request_policy_id`, `cache_policy_id`.
+
 #### Why:
 
-OAI is deprecated, and OAC is recommended by AWS.
+- OAI is deprecated, and OAC is recommended by AWS.
+- Forward values is a legacy cache behavior control.
 
 #### info:
+
+**Updated variable:**
+
+```
+variable "cache_policy_id" {
+  description = <<-EOT
+    The unique identifier of the existing cache policy to attach to the default cache behavior.
+    Default = "658327ea-f89d-4fab-a63d-7e88639e58f6" # AWS Managed-CachingOptimized policy
+    EOT
+  type        = string
+  default     = "658327ea-f89d-4fab-a63d-7e88639e58f6" # AWS Managed-CachingOptimized policy
+}
+
+variable "origin_request_policy_id" {
+  description = <<-EOT
+    The unique identifier of the origin request policy that is attached to the behavior.
+    Should be used in conjunction with `cache_policy_id`.
+    Default     = "88a5eaf4-2fd4-4709-b370-b4c650ea3fcf" # AWS Managed-CORS-S3Origin policy
+    EOT
+  type        = string
+  default     = "88a5eaf4-2fd4-4709-b370-b4c650ea3fcf" # AWS Managed-CORS-S3Origin policy
+}
+
+variable "ordered_cache" {
+  type = list(object({
+    target_origin_id = string
+    path_pattern     = string
+
+    allowed_methods        = list(string)
+    cached_methods         = list(string)
+    compress               = bool
+    trusted_signers        = optional(list(string))
+    trusted_key_groups     = optional(list(string))
+    viewer_protocol_policy = string
+
+    cache_policy_id            = optional(string)
+    origin_request_policy_id   = optional(string)
+    response_headers_policy_id = optional(string)
+
+    lambda_function_association = optional(list(object({
+      event_type   = string
+      include_body = bool
+      lambda_arn   = string
+    })))
+
+    function_association = optional(list(object({
+      event_type   = string
+      function_arn = string
+    })))
+  }))
+  default     = []
+  description = <<-EOT
+    An ordered list of [cache behaviors](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudfront_distribution#cache-behavior-arguments) resource for this distribution.
+    List in order of precedence (first match wins). This is in addition to the default cache policy.
+    Set `target_origin_id` to `""` to specify the S3 bucket origin created by this module.
+    EOT
+}
+```
+
+**New variable:**
 
 ```
 variable "continue_using_legacy_cloudfront_origin_access_identity" {

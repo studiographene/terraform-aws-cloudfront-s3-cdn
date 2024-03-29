@@ -13,17 +13,37 @@ variable "continue_using_legacy_cloudfront_origin_access_identity" {
 }
 
 variable "cloudfront_origin_access_identity_iam_arn" {
-  description = <<EOF
-    DEPRECATED: use `cloudfront_origin_access_control_id` instead.
-  EOF
+  description = "DEPRECATED: use `cloudfront_origin_access_control_id` instead."
   type        = string
   default     = null
 }
 
 variable "cloudfront_origin_access_identity_path" {
-  description = <<EOF
-    DEPRECATED: use `cloudfront_origin_access_control_id` instead.
-EOF
+  description = "DEPRECATED: use `cloudfront_origin_access_control_id` instead."
   type        = string
   default     = null
+}
+
+variable "forward_query_string" {
+  description = "DEPRECATED: Use `cache_policy_id` instead"
+  type        = bool
+  default     = false
+}
+
+variable "query_string_cache_keys" {
+  description = "DEPRECATED: Use `cache_policy_id` instead"
+  type        = list(string)
+  default     = []
+}
+
+variable "forward_header_values" {
+  description = "DEPRECATED: Use `cache_policy_id` instead"
+  type        = list(string)
+  default     = ["Access-Control-Request-Headers", "Access-Control-Request-Method", "Origin"]
+}
+
+variable "forward_cookies" {
+  description = "DEPRECATED: Use `cache_policy_id` instead"
+  type        = string
+  default     = "none"
 }
