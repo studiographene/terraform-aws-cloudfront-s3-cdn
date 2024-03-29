@@ -31,17 +31,12 @@ locals {
 
 
   # Collect the information for cloudfront_origin_access_identity_iam and shorten the variable names
-  cf_access_options = local.continue_using_legacy_cloudfront_origin_access_identity || local.create_cloudfront_origin_access_control ? {
-    new = {
-      arn  = local.continue_using_legacy_cloudfront_origin_access_identity ? aws_cloudfront_origin_access_identity.default[0].iam_arn : "arn:aws:cloudfront::${local.account_id}:distribution/${aws_cloudfront_origin_access_control.default[0].id}"
-      path = local.continue_using_legacy_cloudfront_origin_access_identity ? aws_cloudfront_origin_access_identity.default[0].cloudfront_access_identity_path : aws_cloudfront_origin_access_control.default[0].id
-    }
-    existing = {
-      arn  = try("arn:aws:cloudfront::${local.account_id}:distribution/${var.cloudfront_origin_access_control_id}", var.cloudfront_origin_access_identity_iam_arn)
-      path = try("origin-access-control/cloudfront/${var.cloudfront_origin_access_control_id}", var.cloudfront_origin_access_identity_path)
-    }
-  } : null
-  cf_access = local.cf_access_options[(local.continue_using_legacy_cloudfront_origin_access_identity && var.cloudfront_origin_access_identity_iam_arn != null) || local.create_cloudfront_origin_access_control ? "new" : "existing"]
+  legacy_cf_access_identity = {
+    arn  = local.continue_using_legacy_cloudfront_origin_access_identity ? aws_cloudfront_origin_access_identity.default[0].iam_arn : ""
+    path = local.continue_using_legacy_cloudfront_origin_access_identity ? aws_cloudfront_origin_access_identity.default[0].cloudfront_access_identity_path : ""
+  }
+
+  cf_access_control_id = var.cloudfront_origin_access_control_id != null ? var.cloudfront_origin_access_control_id : try(aws_cloudfront_origin_access_control.default[0].id, null)
 
   # Pick the IAM policy document based on whether the origin is an S3 origin or a Website origin
   iam_policy_document = local.enabled ? (
@@ -83,7 +78,7 @@ locals {
   override_policy = replace(replace(replace(replace(var.additional_bucket_policy,
     "$${origin_path}", local.origin_path),
     "$${bucket_name}", local.bucket),
-    "$${cloudfront_origin_access_identity_iam_arn}", local.cf_access.arn),
+    "$${cloudfront_origin_access_identity_iam_arn}", local.legacy_cf_access_identity.arn),
   "$${cloudfront_arn}", aws_cloudfront_distribution.default[0].arn)
 }
 
@@ -146,7 +141,7 @@ data "aws_iam_policy_document" "s3_origin" {
 
     principals {
       type        = local.create_cloudfront_origin_access_control ? "Service" : "AWS"
-      identifiers = [local.create_cloudfront_origin_access_control ? "cloudfront.amazonaws.com" : local.cf_access.arn]
+      identifiers = [local.create_cloudfront_origin_access_control ? "cloudfront.amazonaws.com" : local.legacy_cf_access_identity.arn]
     }
 
     dynamic "condition" {
@@ -154,7 +149,7 @@ data "aws_iam_policy_document" "s3_origin" {
       content {
         test     = "StringEquals"
         variable = "AWS:SourceArn"
-        values   = [local.create_cloudfront_origin_access_control ? aws_cloudfront_distribution.default[0].arn : local.cf_access.arn]
+        values   = [aws_cloudfront_distribution.default[0].arn]
       }
     }
   }
@@ -167,7 +162,7 @@ data "aws_iam_policy_document" "s3_origin" {
 
     principals {
       type        = local.create_cloudfront_origin_access_control ? "Service" : "AWS"
-      identifiers = [local.create_cloudfront_origin_access_control ? "cloudfront.amazonaws.com" : local.cf_access.arn]
+      identifiers = [local.create_cloudfront_origin_access_control ? "cloudfront.amazonaws.com" : local.legacy_cf_access_identity.arn]
     }
 
     dynamic "condition" {
@@ -175,7 +170,7 @@ data "aws_iam_policy_document" "s3_origin" {
       content {
         test     = "StringEquals"
         variable = "AWS:SourceArn"
-        values   = [local.create_cloudfront_origin_access_control ? aws_cloudfront_distribution.default[0].arn : local.cf_access.arn]
+        values   = [aws_cloudfront_distribution.default[0].arn]
       }
     }
   }
@@ -567,12 +562,12 @@ resource "aws_cloudfront_distribution" "default" {
     domain_name              = local.bucket_domain_name
     origin_id                = local.origin_id
     origin_path              = var.origin_path
-    origin_access_control_id = local.create_cloudfront_origin_access_control ? local.cf_access.path : null
+    origin_access_control_id = local.cf_access_control_id
 
     dynamic "s3_origin_config" {
-      for_each = !var.website_enabled && !local.create_cloudfront_origin_access_control ? [1] : []
+      for_each = !var.website_enabled && local.continue_using_legacy_cloudfront_origin_access_identity ? [1] : []
       content {
-        origin_access_identity = local.cf_access.path
+        origin_access_identity = local.legacy_cf_access_identity.path
       }
     }
 
@@ -633,13 +628,12 @@ resource "aws_cloudfront_distribution" "default" {
       domain_name              = origin.value.domain_name
       origin_id                = origin.value.origin_id
       origin_path              = lookup(origin.value, "origin_path", "")
-      origin_access_control_id = origin.value.origin_access_control_id != null ? origin.value.origin_access_control_id : local.create_cloudfront_origin_access_control ? local.cf_access.path : null
+      origin_access_control_id = origin.value.origin_access_control_id != null ? origin.value.origin_access_control_id : local.cf_access_control_id
 
       dynamic "s3_origin_config" {
-        for_each = origin.value.origin_access_control_id != null && local.continue_using_legacy_cloudfront_origin_access_identity ? [1] : []
+        for_each = origin.value.origin_access_control_id == null && local.continue_using_legacy_cloudfront_origin_access_identity ? [1] : []
         content {
-          # use `origin_access_control_id` to set an existing access control
-          origin_access_identity = local.cf_access.path
+          origin_access_identity = local.legacy_cf_access_identity.path
         }
       }
     }

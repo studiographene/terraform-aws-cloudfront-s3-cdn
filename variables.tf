@@ -512,9 +512,7 @@ variable "deployment_actions" {
 }
 
 variable "cloudfront_origin_access_control_id" {
-  description = <<EOF
-    Existing cloudfront Origin Access Control ID that is supplied in the s3 bucket policy
-  EOF
+  description = "Existing CloudFront Origin Access Control ID to attach to CloudFront."
   type        = string
   default     = null
 }
