@@ -51,7 +51,7 @@ variable "additional_bucket_policy" {
 variable "override_origin_bucket_policy" {
   type        = bool
   default     = true
-  description = "When using an existing origin bucket (through var.origin_bucket), setting this to 'false' will make it so the existing bucket policy will not be overriden"
+  description = "When using an existing origin bucket (through var.origin_bucket), setting this to 'false' will make it so the existing bucket policy will not be overridden"
 }
 
 variable "origin_bucket" {
