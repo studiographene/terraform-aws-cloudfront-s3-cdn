@@ -5,25 +5,6 @@ on:
     branches: ["main", "master"]
 
 jobs:
-  find_all_layers:
-    runs-on: ubuntu-latest
-    name: Available TF layers
-    outputs:
-      LAYERS: ${{ steps.find_layers.outputs.LAYERS }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Finding available layers
-        id: find_layers
-        run: |
-          DIR_LIST=$(find ./tf/layers -mindepth 1 -maxdepth 1 -type d -exec printf '{{"directory": "%s"}}' {{}} \; | jq -s . | jq -c 'map(.directory)')
-          echo Avalilable Layers are $DIR_LIST ...
-          echo "LAYERS=${{DIR_LIST}}" >> $GITHUB_OUTPUT
-
-  call-workflow:
-    uses: studiographene/github-action-workflows/.github/workflows/checkov-terraform-iac-scan.yml@master # if you want alternatively pin to tag version
+  call-worflow:
+    uses: studiographene/github-action-workflows/.github/workflows/checkov-terraform-iac-scan.yml@master 
     secrets: inherit
-    needs: find_all_layers
-    with:
-      directories: ${{needs.find_all_layers.outputs.LAYERS}}
