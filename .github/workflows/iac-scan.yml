@@ -1,0 +1,17 @@
+name: iac-scan
+
+on:
+  pull_request:
+    branches: [master]
+    paths-ignore:
+      - "CHANGELOG.md"
+
+jobs:
+  iac_scan:
+    uses: studiographene/github-action-workflows/.github/workflows/checkov-terraform-iac-scan.yml@master
+    permissions:
+      actions: read
+      contents: write
+      pull-requests: write
+      security-events: write
+    secrets: inherit
